@@ -4,7 +4,7 @@
 # Modele 1 - Create BlockChain
 
 """
-Created on Sun Nov 12 17:37:01 2018
+Created on Sun Nov 12 17:39:23 2018
 
 @author: mmuazekici
 """
@@ -108,7 +108,7 @@ class Blockchain:
 # Create a Web App
 app = Flask(__name__)
 
-#  Creating an address for the node on Port 5000
+#  Creating an address for the node on Port 5003
 node_address = str(uuid4()).replace('-', '')
 
 # Create a Blockhain Instance
@@ -124,7 +124,7 @@ def mine_block():
     previous_block = blockchain.get_previous_block()
 
     # Mining Reward
-    blockchain.add_transactions(node_address, 'Mansur', 1)
+    blockchain.add_transactions(node_address, 'Comolokko', 1)
 
     new_block = blockchain.create_block(previous_block['hash'])
     new_block['hash'] = blockchain.proof_of_work(new_block)
@@ -164,7 +164,7 @@ def is_chain_valid():
 def add_transaction():
     json = request.get_json()
     transaction_keys = ['sender', 'receiver', 'amount']
-    if not all (key in json for key in transaction_keys):
+    if not all(key in json for key in transaction_keys):
         return "Some elements of the transactions are missing!", 400
     index = blockchain.add_transactions(json['sender'], json['receiver'], json['amount'])
     response = {'message': f'This transaction will be added to block {index}'}
@@ -202,4 +202,4 @@ def replace_chain():
     return jsonify(response), 200
 
 # Running the App
-app.run(host='0.0.0.0', port=5000)
+app.run(host='0.0.0.0', port=5003)
