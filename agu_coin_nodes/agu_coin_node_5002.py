@@ -4,7 +4,7 @@
 # Modele 1 - Create BlockChain
 
 """
-Created on Sun Nov 12 17:38:13 2018
+Created on Sun Nov 12 17:39:23 2018
 
 @author: mmuazekici
 """
@@ -32,6 +32,9 @@ class Blockchain:
         self.chain.append(self.create_block(previous_hash='0'))
         self.chain[0]['hash'] = self.proof_of_work(self.chain[0])
         self.nodes = set()
+        self.actual_node = {'uuid': str(uuid4()).replace('-', ''),
+                            'port': 5002,
+                            'name': 'Enaktar'}
 
     def create_block(self, previous_hash):
         block = {'index': len(self.chain) + 1,
@@ -75,9 +78,12 @@ class Blockchain:
         return True
 
     def add_transactions(self, sender, receiver, amount):
-        self.transactions.append({'sender': sender,
-                                  'receiver': receiver,
-                                  'amount': amount})
+
+        new_transaction = {'sender': sender,
+                           'receiver': receiver,
+                           'amount': amount}
+        self.transactions.append(new_transaction)
+
         previous_block = self.get_previous_block()
         return previous_block['index'] + 1
 
@@ -102,14 +108,20 @@ class Blockchain:
             return True
         return False
 
-
+    def get_wallet_balance(self, wallet_name):
+        incomes = 0
+        outgoings = 0
+        for block in self.chain:
+            for transaction in block['transactions']:
+                if transaction['receiver'] == wallet_name:
+                    incomes += transaction['amount']
+                if transaction['sender'] == wallet_name:
+                    outgoings += transaction['amount']
+        return incomes - outgoings
 
 # Part 2 - Mining BlockChain
 # Create a Web App
 app = Flask(__name__)
-
-#  Creating an address for the node on Port 5002
-node_address = str(uuid4()).replace('-', '')
 
 # Create a Blockhain Instance
 
@@ -124,7 +136,7 @@ def mine_block():
     previous_block = blockchain.get_previous_block()
 
     # Mining Reward
-    blockchain.add_transactions(node_address, 'Enaktar', 1)
+    blockchain.add_transactions(blockchain.actual_node['uuid'], blockchain.actual_node['name'], 100)
 
     new_block = blockchain.create_block(previous_block['hash'])
     new_block['hash'] = blockchain.proof_of_work(new_block)
@@ -164,15 +176,25 @@ def is_chain_valid():
 def add_transaction():
     json = request.get_json()
     transaction_keys = ['sender', 'receiver', 'amount']
-    if not all (key in json for key in transaction_keys):
+    if not all(key in json for key in transaction_keys):
         return "Some elements of the transactions are missing!", 400
-    index = blockchain.add_transactions(json['sender'], json['receiver'], json['amount'])
-    response = {'message': f'This transaction will be added to block {index}'}
-    return jsonify(response), 201
+    balance = blockchain.get_wallet_balance(json['sender'])
+
+    for transaction in blockchain.transactions:
+        if transaction['sender'] == json['sender']:
+            balance -= transaction['amount']
+
+    if json['amount'] > balance:
+        response = {'message': f"{json['sender']} don't have enough coin in your wallet!"}
+        return jsonify(response), 400
+    else:
+        index = blockchain.add_transactions(json['sender'], json['receiver'], json['amount'])
+        new_balance = balance-json['amount']
+        response = {'message': f'This transaction will be added to block {index}. New Balance: {new_balance}'}
+        return jsonify(response), 201
 
 
 # Part 3 - Decentralizing our Blockchain
-
 # Connecting new nodes
 @app.route('/connect_node', methods=['POST'])
 def connect_node():
@@ -202,4 +224,4 @@ def replace_chain():
     return jsonify(response), 200
 
 # Running the App
-app.run(host='0.0.0.0', port=5002)
+app.run(host='0.0.0.0', port=blockchain.actual_node['port'])
