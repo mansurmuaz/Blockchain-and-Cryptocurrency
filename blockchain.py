@@ -3,12 +3,6 @@
 
 # Modele 1 - Create BlockChain
 
-"""
-Created on Sun Apr  1 12:38:13 2018
-
-@author: mmuazekici
-"""
-
 import datetime
 import hashlib
 import json
@@ -119,4 +113,4 @@ def is_chain_valid():
 
 
 # Running the App
-app.run(host='0.0.0.0', port=5000)
+app.run(host='127.0.0.1', port=5000)

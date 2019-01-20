@@ -33,7 +33,7 @@ class Blockchain:
         self.nodes = set()
         self.actual_node = {'uuid': str(uuid4()).replace('-', ''),
                             'port': 5003,
-                            'name': 'Comolokko'}
+                            'name': 'Mehmet'}
 
     def create_block(self, previous_hash):
         block = {'index': len(self.chain) + 1,
@@ -149,6 +149,7 @@ def mine_block():
                 'hash': new_block['hash'],
                 'transactions': new_block['transactions'],
                 'mining_elapsed_time': (time.time() - start_time)}
+    blockchain.replace_chain()
     return jsonify(response), 200
 
 
